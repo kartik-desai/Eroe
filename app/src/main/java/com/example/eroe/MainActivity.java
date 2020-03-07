@@ -1,6 +1,8 @@
 package com.example.eroe;
 
 import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.os.AsyncTask;
@@ -24,6 +26,7 @@ public class MainActivity extends AppCompatActivity {
     EditText name, phone, age, email, address,aadhar;
     String adhar, n, p, a, h, c, gender,e,addresss;
     RadioGroup rg;
+    SQLiteDatabase db;
     TextView next,back;
     RadioButton r,m,f;
     Pattern regex = Pattern.compile("[$&+,:;=\\\\?#|/'<>^*()@.%!-]");
@@ -35,7 +38,27 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        db= openOrCreateDatabase("Eroe.db", Context.MODE_PRIVATE, null);
+
+        UserDatabase.makeTable(db);
+        //UserDatabase.dropTable(db);
+
         getId();
+        //Log.d("dd", UserDatabase.getAadhar(db));
+        if(!UserDatabase.getAadhar(db).equals("null")){
+            String contacts[] = UserDatabase.getContacts(db);
+            //if(contacts == NULL )
+            Log.d("ss",contacts[0]+"f");
+            if(!contacts[0].equals("null")) {
+                Intent intent = new Intent(MainActivity.this, Landing.class);
+                startActivity(intent);
+            }
+            else{
+                Intent i = new Intent(MainActivity.this, EmergencyContacts.class);
+                startActivity(i);
+            }
+        }
+
     }
 
     private boolean getValue() {
@@ -113,9 +136,11 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String result) {
             dialog.dismiss();
+            UserDatabase.putData(db,adhar,n);
             Toast.makeText(getApplicationContext(), result,
                     Toast.LENGTH_LONG).show();
-
+            Intent i = new Intent(MainActivity.this, EmergencyContacts.class);
+            startActivity(i);
         }
     }
 
