@@ -1,20 +1,28 @@
 package com.example.eroe;
 
+import android.app.ProgressDialog;
 import android.database.sqlite.SQLiteDatabase;
-import android.support.v7.app.AppCompatActivity;
+import android.graphics.Color;
+import android.os.AsyncTask;
 import android.os.Bundle;
+
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import org.json.JSONObject;
 
 import java.util.regex.Pattern;
 
 public class MainActivity extends AppCompatActivity {
 
-    EditText name, phone, age, email, address, city;
-    String w, activity, wei, n, p, a, h, c, gender;
+    EditText name, phone, age, email, address,aadhar;
+    String adhar, n, p, a, h, c, gender,e,addresss;
     RadioGroup rg;
     TextView next,back;
     RadioButton r,m,f;
@@ -27,11 +35,29 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        getId();
     }
+
+    private boolean getValue() {
+        int i=0;
+        boolean val=true;
+        n = name.getText().toString();//name
+        p = phone.getText().toString();//phone
+        a = age.getText().toString();//age
+        e = email.getText().toString();//name
+        adhar = aadhar.getText().toString();//phone
+        addresss = address.getText().toString();
+        int id = rg.getCheckedRadioButtonId();
+        r = (RadioButton) findViewById(id);//gender
+        gender = r.getText().toString();
+        return val;
+    }
+
 
     private void getId() {
         name = (EditText) findViewById(R.id.editTextName);
         phone = (EditText) findViewById(R.id.editTextPhone);
+        aadhar = findViewById(R.id.editTextAadhar);
         age = (EditText) findViewById(R.id.editTextAge);
         email = (EditText) findViewById(R.id.editTextEmail);
         address = (EditText) findViewById(R.id.editTextAddress);
@@ -41,18 +67,58 @@ public class MainActivity extends AppCompatActivity {
         next= (TextView) findViewById(R.id.next);
     }
 
-    public void verifyAadhar(View view) {
-        
+    public void next(View view) {
+        getValue();
+        new SendPostRequest().execute();
     }
     public void onRadioButtonClicked(View view) {
         // Check which radio button was clicked
         switch(view.getId()) {
-            case R.id.radioMale:m.setButtonDrawable(R.drawable.malecolor);
+            case R.id.radioMale : m.setButtonDrawable(R.drawable.malecolor);
                 f.setButtonDrawable(R.drawable.femaleblack);
                 break;
-            case R.id.radioFemale:f.setButtonDrawable(R.drawable.femalecolor);
+            case R.id.radioFemale : f.setButtonDrawable(R.drawable.femalecolor);
                 m.setButtonDrawable(R.drawable.malebalck);
                 break;
         }
     }
+    public class SendPostRequest extends AsyncTask<String, Void, String> {
+        ProgressDialog dialog = new ProgressDialog(MainActivity.this);
+
+        protected void onPreExecute() {
+            this.dialog.setMessage("Please wait...");
+            this.dialog.show();
+        }
+
+        protected String doInBackground(String... arg0) {
+            try {
+                String file = "addData.php";
+                JSONObject postDataParams = new JSONObject();
+                postDataParams.put("email", e);
+                postDataParams.put("name", n);
+                postDataParams.put("phone", p);
+                postDataParams.put("age", a);
+                postDataParams.put("aadhar",adhar);
+                postDataParams.put("address", addresss);
+                postDataParams.put("gender", gender);
+
+                Log.e("params", postDataParams.toString());
+                return (com.example.eroe.SendData.sendData(file, postDataParams));
+
+            } catch (Exception e) {
+                return new String("Exception: " + e.getMessage());
+            }
+        }
+
+        @Override
+        protected void onPostExecute(String result) {
+            dialog.dismiss();
+            Toast.makeText(getApplicationContext(), result,
+                    Toast.LENGTH_LONG).show();
+
+        }
+    }
+
 }
+
+
